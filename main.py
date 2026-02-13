@@ -21,11 +21,33 @@ print(y_test.shape)
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.compose import ColumnTransformer
-transformer = ColumnTransformer(transformers=[
-                  ('tnf1',OrdinalEncoder(categories=[['male','female']]),['sex']),
-                  ('tnf2',OrdinalEncoder(categories=[['no','yes']]),['smoker']),
-                  ('tnf3',OneHotEncoder(sparse_output=False, drop='first'),['region'])],
-                  remainder='passthrough')
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
 
-print(transformer.fit_transform(x_train).shape)
-print(transformer.transform(x_test).shape)
+
+ohe = OneHotEncoder(drop='first', sparse_output=False)
+
+x_train_sex_smoker_region = ohe.fit_transform(x_train[['sex','smoker','region']])
+x_test_sex_smoker_region = ohe.transform(x_test[['sex','smoker','region']])
+
+
+
+x_train_age_bmi_children = x_train.drop(columns =['smoker', 'region','sex']).values
+x_test_age_bmi_children = x_test.drop(columns =['smoker', 'region','sex']).values
+print(x_train_age_bmi_children.shape)
+
+
+x_train_transformed = np.concatenate((x_train_age_bmi_children ,x_train_sex_smoker_region) , axis = 1)
+print(x_train_transformed.shape)
+
+
+
+transformers = ColumnTransformer(transformers=[
+    ('tnf1', OneHotEncoder(drop='first', sparse_output=False), ['sex','smoker','region'])
+], remainder='passthrough')
+
+x_train_transformed = transformers.fit_transform(x_train)
+x_test_transformed = transformers.transform(x_test)
+
+print(x_train_transformed.shape)
+print(x_test_transformed.shape)
